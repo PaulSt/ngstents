@@ -26,7 +26,7 @@ jobs:
         run: |
              echo "PYTHONPATH=/usr/lib/python3/dist-packages/:$GITHUB_WORKSPACE/install" >> $GITHUB_ENV
              echo "NETGENDIR=/usr/bin/" >> $GITHUB_ENV
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: cmake ngstents
         run: cmake -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/install -B$GITHUB_WORKSPACE/make -S$GITHUB_WORKSPACE/src
       - name: compile ngstents
@@ -53,7 +53,7 @@ jobs:
              echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$NETGENDIR" >> $GITHUB_ENV
              echo "DYLD_FRAMEWORK_PATH=$DYLD_FRAMEWORK_PATH:$NETGENDIR/../Frameworks" >> $GITHUB_ENV
              echo "$NETGENDIR" >> $GITHUB_PATH
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: cmake ngstents
         run: cmake -B$GITHUB_WORKSPACE/make -S$GITHUB_WORKSPACE/src
       - name: compile ngstents
@@ -68,7 +68,7 @@ jobs:
     steps:
       - name: clear cache
         run: rm -rf /opt/hostedtoolcache
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: 'True'
           path: 'ngstents'
@@ -78,7 +78,7 @@ jobs:
       - name: build pip
         run: docker run -v $GITHUB_WORKSPACE:/workspace sameli/manylinux2014_x86_64_cuda_11.7 /bin/sh /workspace/ngstents/.github/workflows/build_pip.sh 
       - name: Store the binary wheel
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: python-package-distributions
           path: ngstents/wheelhouse
@@ -94,19 +94,19 @@ jobs:
       MACOSX_DEPLOYMENT_TARGET: '10.15'
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: recursive
           path: 'ngstents'
       - name: Get Python ${{ matrix.py }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.py }}
       - name: Run build script
         run: cd ngstents/.github/workflows && bash build_pip_mac.sh ${{ matrix.py }}
       - name: Store the binary wheel
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: python-package-distributions
           path: ngstents/wheelhouse
@@ -120,20 +120,20 @@ jobs:
     runs-on: windows-2019
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: recursive
           path: 'ngstents'
       - name: Get Python ${{ matrix.py }}
         id: python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.py }}
       - name: Run build script
         run: Set-Location ngstents/.github/workflows; ./build_pip.ps1 ${{ env.pythonLocation }}
       - name: Store the binary wheel
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: python-package-distributions
           path: ngstents/wheelhouse
@@ -144,7 +144,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Download all the dists
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: python-package-distributions
         path: ngstents/wheelhouse/
@@ -161,7 +161,7 @@ jobs:
     needs: [publish-pypi]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
           submodules: 'True'
@@ -189,7 +189,7 @@ jobs:
           publish: false
           #requirements_path: ./doc/requirements.txt
       - name: Upload
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: 'ngstents'
                 
