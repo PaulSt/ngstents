@@ -52,7 +52,7 @@ def get_version():
             version = version_re.search(f.read()).group(1)
     return version
 
-ngsolve_version = '6.2.2301'
+ngsolve_version = '6.2.2401.post24.dev0'
 install_requires = [ 'ngsolve >= '+ngsolve_version ] #, 'ngstents >= 0.0.2' ]
 
 py_install_dir = get_python_lib(1,0,'').replace('\\','/')
