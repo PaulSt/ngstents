@@ -1,3 +1,5 @@
+#define FILE_H1LOFE_CPP
+
 #include "tents.hpp"
 #include <python_ngstd.hpp>
 
