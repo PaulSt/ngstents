@@ -15,18 +15,18 @@ git config --global --add safe.directory '*'
 
 export ORIGINAL_PATH="$PATH"
 
-for pyversion in 38 39 310 311
+for pyversion in 38 39 310 311 312
 do
     export PYDIR="/opt/python/cp${pyversion}-cp${pyversion}/bin"
     export PATH="$ORIGINAL_PATH:$PYDIR"
 
     rm -rf _skbuild
-    $PYDIR/pip install pytest-check numpy wheel scikit-build mkl==2023.* mkl-devel==2023.* setuptools
+    $PYDIR/pip install pytest-check numpy wheel scikit-build mkl==2023.* mkl-devel==2023.* setuptools setuptools_scm
     $PYDIR/pip install ngsolve 
 
     $PYDIR/pip wheel -vvv .
     rename linux_ manylinux_2_17_x86_64.manylinux2014_ ngstents*.whl
     mv ngstents*.whl wheelhouse/
     rm -rf *.whl
-    $PYDIR/pip uninstall -y ngsolve netgen-mesher setuptools pytest-check numpy wheel scikit-build mkl mkl-devel 
+    $PYDIR/pip uninstall -y ngsolve netgen-mesher setuptools setuptools_scm pytest-check numpy wheel scikit-build mkl mkl-devel 
 done

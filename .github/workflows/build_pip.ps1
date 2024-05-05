@@ -10,7 +10,7 @@ if (test-path venv_ngs) {
     cmd.exe /c rd /s /q venv_ngs
 }
 
-pip3 install scikit-build wheel numpy twine mkl-devel==2022.* mkl==2022.*
+pip3 install scikit-build wheel numpy twine mkl-devel==2022.* mkl==2022.* setuptools setuptools_scm
 pip3 install ngsolve
 
 $env:NGSolve_DIR = "$env:Python3_ROOT_DIR\lib\site-packages\ngsolve\cmake"

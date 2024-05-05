@@ -39,7 +39,7 @@ jobs:
              pytest .
 
   macos-nightly:
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:     
       - name: install ngsolve
         run: |
@@ -88,7 +88,7 @@ jobs:
     needs: [ubuntu-nightly, macos-nightly]
     strategy:
       matrix:
-        py: ['3.8', '3.9', '3.10', '3.11']
+        py: ['3.8', '3.9', '3.10', '3.11', '3.12']
     runs-on: macos-11
     env:
       MACOSX_DEPLOYMENT_TARGET: '10.15'
@@ -116,7 +116,7 @@ jobs:
     needs: [ubuntu-nightly, macos-nightly]
     strategy:
       matrix:
-        py: ['3.8', '3.9', '3.10', '3.11']
+        py: ['3.8', '3.9', '3.10', '3.11', '3.12']
     runs-on: windows-2019
     steps:
       - name: Checkout
