@@ -26,9 +26,9 @@ jobs:
         run: |
              echo "PYTHONPATH=/usr/lib/python3/dist-packages/:$GITHUB_WORKSPACE/install" >> $GITHUB_ENV
              echo "NETGENDIR=/usr/bin/" >> $GITHUB_ENV
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: cmake ngstents
-        run: cmake -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/install -B$GITHUB_WORKSPACE/make -S$GITHUB_WORKSPACE/src
+        run: cmake -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/install -DPY_INSTALL_DIR="" -B$GITHUB_WORKSPACE/make -S$GITHUB_WORKSPACE/src
       - name: compile ngstents
         run: |
              make -C$GITHUB_WORKSPACE/make
@@ -41,25 +41,30 @@ jobs:
   macos-nightly:
     runs-on: macos-13
     steps:     
-      - name: install ngsolve
-        run: |
-             wget https://www.asc.tuwien.ac.at/~mhochsteger/ngsolve/macos/NGSolve_nightly.dmg
-             hdiutil attach NGSolve_nightly.dmg
-             cp -R /Volumes/NGSolve/* /Applications
+      - name: Get Python 
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
       - name: set path
         run: |
-             echo "PYTHONPATH=$PYTHONPATH:/Applications/Netgen.app/Contents/Resources/lib/python3.8/site-packages:." >> $GITHUB_ENV
-             echo "NETGENDIR=/Applications/Netgen.app/Contents/MacOS" >> $GITHUB_ENV
-             echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$NETGENDIR" >> $GITHUB_ENV
-             echo "DYLD_FRAMEWORK_PATH=$DYLD_FRAMEWORK_PATH:$NETGENDIR/../Frameworks" >> $GITHUB_ENV
-             echo "$NETGENDIR" >> $GITHUB_PATH
-      - uses: actions/checkout@v3
+             echo "PYDIR=${{ env.Python3_ROOT_DIR }}/bin" >> $GITHUB_ENV
+             echo "NETGEN_Dir=${{ env.Python3_ROOT_DIR }}/bin/../lib/python3.12/site-packages/netgen/cmake" >> $GITHUB_ENV
+             echo "NGSolve_Dir=${{ env.Python3_ROOT_DIR }}/bin/../lib/python3.12/site-packages/ngsolve/cmake" >> $GITHUB_ENV
+             echo "/Applications/CMake.app/Contents/bin" >> $GITHUB_PATH
+      - run: echo "CMAKE_PREFIX_PATH=${{ env.CMAKE_PREFIX_PATH }}:${{ env.NGSolve_Dir }}:${{ env.NETGEN_Dir }}" >> $GITHUB_ENV
+      - name: install ngsolve
+        run: pip3 install ngsolve pytest matplotlib
+      - uses: actions/checkout@v4
       - name: cmake ngstents
         run: cmake -B$GITHUB_WORKSPACE/make -S$GITHUB_WORKSPACE/src
       - name: compile ngstents
         run: |
              make -C$GITHUB_WORKSPACE/make
              sudo make -C$GITHUB_WORKSPACE/make install  
+      - name: test ngstents
+        run: |
+             cd $GITHUB_WORKSPACE/tests
+             pytest .
 
   pypi-linux:
     name: Build wheels for linux
@@ -68,7 +73,7 @@ jobs:
     steps:
       - name: clear cache
         run: rm -rf /opt/hostedtoolcache
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: 'True'
           path: 'ngstents'
@@ -78,9 +83,9 @@ jobs:
       - name: build pip
         run: docker run -v $GITHUB_WORKSPACE:/workspace sameli/manylinux2014_x86_64_cuda_11.7 /bin/sh /workspace/ngstents/.github/workflows/build_pip.sh 
       - name: Store the binary wheel
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: python-package-distributions
+          name: python-package-distributions-linux
           path: ngstents/wheelhouse
 
   pypi-mac:
@@ -94,7 +99,7 @@ jobs:
       MACOSX_DEPLOYMENT_TARGET: '10.15'
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: recursive
@@ -106,9 +111,9 @@ jobs:
       - name: Run build script
         run: cd ngstents/.github/workflows && bash build_pip_mac.sh ${{ matrix.py }}
       - name: Store the binary wheel
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: python-package-distributions
+          name: python-package-distributions-mac-${{ matrix.py }}
           path: ngstents/wheelhouse
 
   pypi-win:
@@ -120,7 +125,7 @@ jobs:
     runs-on: windows-2019
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: recursive
@@ -133,9 +138,9 @@ jobs:
       - name: Run build script
         run: Set-Location ngstents/.github/workflows; ./build_pip.ps1 ${{ env.pythonLocation }}
       - name: Store the binary wheel
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: python-package-distributions
+          name: python-package-distributions-win-${{ matrix.py }}
           path: ngstents/wheelhouse
 
   publish-pypi:
@@ -144,9 +149,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Download all the dists
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
-        name: python-package-distributions
+        pattern: python-package-distributions-*
+        merge-multiple: true
         path: ngstents/wheelhouse/
     - name: Publish binary distributions to PyPI
       if: github.ref == 'refs/heads/master'
@@ -161,7 +167,7 @@ jobs:
     needs: [publish-pypi]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
           submodules: 'True'
