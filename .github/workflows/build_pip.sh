@@ -21,8 +21,8 @@ do
     export PATH="$ORIGINAL_PATH:$PYDIR"
 
     rm -rf _skbuild
-    $PYDIR/pip install pytest-check numpy wheel scikit-build mkl==2023.* mkl-devel==2023.* setuptools setuptools_scm
-    $PYDIR/pip install ngsolve 
+    $PYDIR/pip install pytest-check numpy wheel scikit-build mkl==2023.* mkl-devel==2023.* setuptools==69.5.1 setuptools_scm==8.1.0
+    $PYDIR/pip install -r ./.github/workflows/ngsolve_version.txt
 
     $PYDIR/pip wheel -vvv .
     rename linux_ manylinux_2_17_x86_64.manylinux2014_ ngstents*.whl

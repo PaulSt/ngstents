@@ -24,7 +24,7 @@ jobs:
              pip3 install pytest matplotlib numpy
       - name: set path
         run: |
-             echo "PYTHONPATH=/usr/lib/python3/dist-packages/:$GITHUB_WORKSPACE/install" >> $GITHUB_ENV
+             echo "PYTHONPATH=/usr/lib/python3/dist-packages/:$GITHUB_WORKSPACE/install/lib/python3.10/dist-packages" >> $GITHUB_ENV
              echo "NETGENDIR=/usr/bin/" >> $GITHUB_ENV
       - uses: actions/checkout@v4
       - name: cmake ngstents

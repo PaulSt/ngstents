@@ -25,7 +25,8 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     message("The python module ${module_name} will be installed to: ${install_dir}")
     set(CMAKE_INSTALL_PREFIX ${install_dir} CACHE PATH "Install dir" FORCE)
 else(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(PY_INSTALL_DIR ${NGSOLVE_INSTALL_DIR_PYTHON} CACHE STRING "subdir of install dir for python modules")
+    #set(PY_INSTALL_DIR ${NGSOLVE_INSTALL_DIR_PYTHON} CACHE STRING "subdir of install dir for python modules")
+    execute_process(COMMAND ${Python3_EXECUTABLE} -c "import os.path, sysconfig;print(os.path.relpath(sysconfig.get_path('platlib'), sysconfig.get_path('data')))" OUTPUT_VARIABLE PY_INSTALL_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} CACHE PATH "build dir")
 
@@ -72,7 +73,7 @@ for better autocompletion support install it with pip.")
       "This project is only compatible with\n\t\tpybind11-stubgen==0.5")
 endif(BUILD_STUB_FILES)
 
-message("With 'make install' the python package will be installed to: ${CMAKE_INSTALL_PREFIX}")
+message("With 'make install' the python package will be installed to: ${CMAKE_INSTALL_PREFIX}/${PY_INSTALL_DIR}")
 install(TARGETS _pytents DESTINATION ${CMAKE_INSTALL_PREFIX}/${PY_INSTALL_DIR}/ngstents)
 install(TARGETS _pyconslaw DESTINATION ${CMAKE_INSTALL_PREFIX}/${PY_INSTALL_DIR}/ngstents/conslaw)
 
