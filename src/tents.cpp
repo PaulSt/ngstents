@@ -6,10 +6,8 @@
 
 ///////////////////// GradPhiCoefficientFunction ///////////////////////////
 
-void GradPhiCoefficientFunction::GenerateCode(Code &code, FlatArray<int> inputs, int index) const
+void GradPhiCoefficientFunction::GenerateCode(Code &code, FlatArray<int>, int index) const
 {
-  auto dims = Dimensions();
-
   string header = "\n\
     {flatmatrix} {values};\n\
     ProxyUserData * {ud} = (ProxyUserData*)mir.GetTransformation().userdata;\n\
@@ -29,7 +27,7 @@ void GradPhiCoefficientFunction::GenerateCode(Code &code, FlatArray<int> inputs,
 
   string body = "";
 
-  for (int i = 0; i < this->Dimension(); i++) {
+  for (size_t i = 0; i < this->Dimension(); i++) {
     body += Var(index, i, this->Dimensions()).Declare("{scal_type}", 0.0);
     string values = "{values}";
     if(code.is_simd)
@@ -252,8 +250,8 @@ bool TentPitchedSlab::PitchTents(const double dt, const bool calc_local_ct, cons
         }
       //check if slab is complete
       slab_complete = true;
-      for(int i = 0; i < ma->GetNV(); i++)
-        if(vmap[i] == i)
+      for(size_t i = 0; i < ma->GetNV(); i++)
+        if(vmap[i] == int(i))
           if(complete_vertices[i] == false)
             {
               slab_complete = false;
@@ -266,9 +264,9 @@ bool TentPitchedSlab::PitchTents(const double dt, const bool calc_local_ct, cons
     {
       const auto &vrefdt = slabpitcher->GetVerticesReferenceHeight();
       cout << "Error: the algorithm could not pitch the whole slab" << endl;
-      int iv;
+      size_t iv;
       for(iv = 0; iv < ma->GetNV(); iv++)
-        if(vmap[iv] == iv && !complete_vertices[iv]) break;
+        if(vmap[iv] == int(iv) && !complete_vertices[iv]) break;
       if(iv == ma->GetNV())//just as a precaution, let us check that it really didnt pitch.
         {
           cout << "Inconsistent data structure. Aborting..." << endl;
@@ -276,7 +274,7 @@ bool TentPitchedSlab::PitchTents(const double dt, const bool calc_local_ct, cons
         }
       for(iv = 0; iv < ma->GetNV(); iv++)
         {
-          if(vmap[iv] == iv && !complete_vertices[iv])
+          if(vmap[iv] == int(iv) && !complete_vertices[iv])
             {
               const auto relkt = ktilde[iv] / vrefdt[iv];
               if(relkt < 1e-10) {continue;}
@@ -393,8 +391,8 @@ bool TentSlabPitcher::GetReadyVertices(double &adv_factor, bool reset_adv_factor
   const double initial_adv_factor = adv_factor;
   for(auto ia = 0; ia < n_attempts; ia++)
     {
-      for (auto iv = 0; iv < ma->GetNV(); iv++)
-        if(vmap[iv] == iv && !complete_vertices[iv])
+      for (size_t iv = 0; iv < ma->GetNV(); iv++)
+        if(vmap[iv] == int(iv) && !complete_vertices[iv])
           {
             if (ktilde[iv] > adv_factor * vertex_refdt[iv])
               if (!vertex_ready[iv])
@@ -420,8 +418,8 @@ bool TentSlabPitcher::GetReadyVertices(double &adv_factor, bool reset_adv_factor
 void TentSlabPitcher::ComputeVerticesReferenceHeight(const Table<int> &v2v, const Table<int> &v2e, const FlatArray<double> &tau, LocalHeap &lh)
 {
   this->vertex_refdt = std::numeric_limits<double>::max();
-  for (auto i = 0; i < this->ma->GetNV(); i++)
-    if(vmap[i]==i) // non-periodic
+  for (size_t i = 0; i < this->ma->GetNV(); i++)
+    if(vmap[i]==int(i)) // non-periodic
       {
         this->vertex_refdt[i] = this->GetPoleHeight(i, tau, v2v[i],v2e[i],lh);
       }
@@ -429,11 +427,11 @@ void TentSlabPitcher::ComputeVerticesReferenceHeight(const Table<int> &v2v, cons
 }
 
 std::tuple<int,int> TentSlabPitcher::PickNextVertexForPitching(const FlatArray<int> &ready_vertices,
-                                                               const FlatArray<double> &ktilde,
+                                                               const FlatArray<double> &,
                                                                const FlatArray<int> &vertices_level){  
   int minlevel = std::numeric_limits<int>::max();
   int posmin = -1;
-  for(auto i = 0; i < ready_vertices.Size(); i++)
+  for(size_t i = 0; i < ready_vertices.Size(); i++)
     if(vertices_level[ready_vertices[i]] < minlevel)
       {
         minlevel = vertices_level[ready_vertices[i]];
@@ -543,7 +541,7 @@ std::tuple<Table<int>,Table<int>> TentSlabPitcher::InitializeMeshData(LocalHeap 
   for ( ; !create_per_verts.Done(); create_per_verts++)
     {
       for(auto i : Range(vmap))
-        if(vmap[i]!=i)
+        if(vmap[i]!=int(i))
           create_per_verts.Add(vmap[i],i);
     }
 
@@ -557,7 +555,7 @@ std::tuple<Table<int>,Table<int>> TentSlabPitcher::InitializeMeshData(LocalHeap 
     }
   else
     {
-      this->local_ctau = [](const int v, const int el_or_edge){return 1;};
+      this->local_ctau = [](const int, const int){return 1;};
     }
   return std::make_tuple(v2v, v2e);
 }
@@ -624,7 +622,7 @@ void TentSlabPitcher::RemovePeriodicEdges(BitArray &fine_edges)
 
 
 
-template <int DIM> double VolumeGradientPitcher<DIM>::GetPoleHeight(const int vi, const FlatArray<double> & tau,  FlatArray<int> nbv, FlatArray<int> nbe, LocalHeap & lh) const{
+template <int DIM> double VolumeGradientPitcher<DIM>::GetPoleHeight(const int vi, const FlatArray<double> & tau,  FlatArray<int>, FlatArray<int>, LocalHeap & lh) const{
   HeapReset hr(lh);
   constexpr auto el_type = EL_TYPE(DIM);
   //number of vertices of the current element (always the simplex associated to DIM)
@@ -647,7 +645,7 @@ template <int DIM> double VolumeGradientPitcher<DIM>::GetPoleHeight(const int vi
   //numerical tolerance (NOT YET SCALED)
   constexpr double num_tol = std::numeric_limits<double>::epsilon();
   const auto nels = els.Size();
-  for (int iel = 0; iel < nels; iel++)
+  for (size_t iel = 0; iel < nels; iel++)
     {
       const auto el = els[iel];
       ElementId ei(VOL,el);
@@ -717,9 +715,7 @@ template <int DIM> double VolumeGradientPitcher<DIM>::GetPoleHeight(const int vi
  }
 
 template <int DIM>
-Table<double> VolumeGradientPitcher<DIM>::CalcLocalCTau(LocalHeap &lh, const Table<int> &v2e){
-  constexpr auto el_type = EL_TYPE(DIM);//simplex of dimension dim
-  constexpr auto n_el_vertices = DIM + 1;//number of vertices of that simplex
+Table<double> VolumeGradientPitcher<DIM>::CalcLocalCTau(LocalHeap &lh, const Table<int> &){
   
   const auto n_mesh_vertices = ma->GetNV();
   //this table will contain the local mesh-dependent constant
@@ -730,10 +726,10 @@ Table<double> VolumeGradientPitcher<DIM>::CalcLocalCTau(LocalHeap &lh, const Tab
   //just calculating the size of the table
   for(auto vi : IntRange(0, n_mesh_vertices))
     {
-      if(vi != vmap[vi]) {continue;}
+      if(vi != size_t(vmap[vi])) {continue;}
       this->GetVertexElements(vi,vertex_els);
       const auto n_vert_els = vertex_els.Size();
-      for(auto el : IntRange(0, n_vert_els))
+      for(auto _ : IntRange(0, n_vert_els))
         {create_local_ctau.Add(vi,0);}
     }
   create_local_ctau++;// it is in insert mode
@@ -743,7 +739,7 @@ Table<double> VolumeGradientPitcher<DIM>::CalcLocalCTau(LocalHeap &lh, const Tab
   //therefore it must be ensured that ctau <=1
   for(auto vi : IntRange(0,n_mesh_vertices))
     {
-      if(vi != vmap[vi]){continue;}
+      if(vi != size_t(vmap[vi])){continue;}
       this->GetVertexElements(vi,vertex_els);
       for(auto iel : IntRange(0,vertex_els.Size()))
         {
@@ -773,7 +769,7 @@ Table<double> VolumeGradientPitcher<DIM>::CalcLocalCTau(LocalHeap &lh, const Tab
               for(auto edge : face_edges)
                 {
                   auto pnts = ma->GetEdgePNums(edge);
-                  if(vmap[pnts[0]] != vi && vmap[pnts[1]] != vi)
+                  if(size_t(vmap[pnts[0]]) != vi && size_t(vmap[pnts[1]]) != vi)
                     {
                       opposite_edge = edge_len[edge];
                     }
@@ -794,7 +790,7 @@ Table<double> VolumeGradientPitcher<DIM>::CalcLocalCTau(LocalHeap &lh, const Tab
 }
 
 template <int DIM>
-double EdgeGradientPitcher<DIM>::GetPoleHeight(const int vi, const FlatArray<double> & tau, FlatArray<int> nbv, FlatArray<int> nbe, LocalHeap & lh) const{
+double EdgeGradientPitcher<DIM>::GetPoleHeight(const int vi, const FlatArray<double> & tau, FlatArray<int> nbv, FlatArray<int> nbe, LocalHeap &) const{
   double kt = std::numeric_limits<double>::max();
   for (int nb_index : nbv.Range())
     {
@@ -825,9 +821,9 @@ Table<double> EdgeGradientPitcher<DIM>::CalcLocalCTau(LocalHeap &lh, const Table
   //just calculating the size of the table
   for(auto vi : IntRange(0, n_mesh_vertices))
     {
-      if(vi != vmap[vi]) {continue;}
+      if(vi != size_t(vmap[vi])) {continue;}
       const auto n_edges_vert = v2e[vi].Size();
-      for(auto el : IntRange(0, n_edges_vert))
+      for(auto _ : IntRange(0, n_edges_vert))
         {create_local_ctau.Add(vi,0);}
     }
   create_local_ctau++;// it is in insert mode
@@ -848,7 +844,7 @@ Table<double> EdgeGradientPitcher<DIM>::CalcLocalCTau(LocalHeap &lh, const Table
   //projection of the gradient over the respective face
   for(auto vi : IntRange(0, n_mesh_vertices))
     {
-      if(vi != vmap[vi]){continue;}
+      if(vi != size_t(vmap[vi])){continue;}
       for(auto edge : v2e[vi])
         {
           //gets the elements that have this edge as a side
