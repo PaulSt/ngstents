@@ -1034,7 +1034,7 @@ void TentPitchedSlab::DrawPitchedTentsVTK(string filename)
 
 
   out << "CELL_TYPES " << cells.Size() << endl;
-  for (auto c : cells)
+  for (auto _ : cells)
     out << "10 " << endl;
 
   out << "CELL_DATA " << cells.Size() << endl;
