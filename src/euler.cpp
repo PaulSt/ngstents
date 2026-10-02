@@ -94,7 +94,7 @@ public:
     return flux;
   }
 
-  void Flux (const SIMD_BaseMappedIntegrationRule & mir,
+  void Flux (const SIMD_BaseMappedIntegrationRule & /* mir */,
              FlatMatrix<SIMD<double>> u, FlatMatrix<SIMD<double>> flux) const
   {
     for(int i : Range(u.Width()))
@@ -200,7 +200,7 @@ public:
         }
   }
 
-  void NumFlux(const SIMD_BaseMappedIntegrationRule & mir,
+  void NumFlux(const SIMD_BaseMappedIntegrationRule & /* mir */,
             FlatMatrix<SIMD<double>> ul, FlatMatrix<SIMD<double>> ur,
             FlatMatrix<SIMD<double>> normals, FlatMatrix<SIMD<double>> fna) const
   {
@@ -224,7 +224,7 @@ public:
     U_refl(D+1) = rho * ( e + 0.5 * L2Norm2(u_refl));
   }
 
-  void u_reflect(const SIMD_BaseMappedIntegrationRule & mir,
+  void u_reflect(const SIMD_BaseMappedIntegrationRule & /* mir */,
 		 FlatMatrix<SIMD<double>> u,
 		 FlatMatrix<SIMD<double>> normals,
 		 FlatMatrix<SIMD<double>> u_refl) const
@@ -301,7 +301,7 @@ public:
       }
   }
 
-  void CalcViscCoeffEl(const SIMD_BaseMappedIntegrationRule & mir,
+  void CalcViscCoeffEl(const SIMD_BaseMappedIntegrationRule & /* mir */,
                        FlatMatrix<SIMD<double>> elu_ipts,
                        FlatMatrix<SIMD<double>> res_ipts,
                        const double hi, double & coeff) const
@@ -432,7 +432,7 @@ public:
   }
 
   template <typename MIP=BaseMappedIntegrationPoint, typename TA, typename TB>
-  void InverseMap(const MIP & mip, const TA & grad,
+  void InverseMap(const MIP & /* mip */, const TA & grad,
 		  const TB & u) const
   {
     auto InnerProduct = [](auto a, auto b)
