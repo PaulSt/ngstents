@@ -1,5 +1,15 @@
+name: Build and test packages
+
 on:
   workflow_dispatch:
+    inputs:
+      ngsolve_version:
+        description: NGSolve version (empty builds the current checkout)
+        type: string
+      dry_run:
+        description: Build and test without uploading to PyPI
+        type: boolean
+        default: true
   push:
     branches:
       - master
@@ -8,6 +18,10 @@ on:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 jobs:
   build_wheels:
@@ -29,6 +43,11 @@ jobs:
           persist-credentials: false
           fetch-tags: 'true'
           fetch-depth: 0
+
+      - uses: PaulSt/test-watcher@main
+        with:
+          ngsolve_version: ${{ inputs.ngsolve_version }}
+          dry_run: ${{ inputs.dry_run }}
 
       - uses: pypa/cibuildwheel@v4.2.1
 
@@ -63,12 +82,20 @@ jobs:
 
   build_sdist:
     runs-on: ubuntu-latest
+    outputs:
+      published: ${{ steps.release.outputs.published }}
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
           fetch-tags: 'true'
           fetch-depth: 0
+
+      - uses: PaulSt/test-watcher@main
+        id: release
+        with:
+          ngsolve_version: ${{ inputs.ngsolve_version }}
+          dry_run: ${{ inputs.dry_run }}
 
       - run: pipx run build --sdist
 
@@ -78,7 +105,9 @@ jobs:
           path: dist/*.tar.gz
 
   publish-pypi:
-    if: startsWith(github.ref, 'refs/tags/')
+    if: >-
+      !inputs.dry_run && needs.build_sdist.outputs.published != 'true' &&
+      (startsWith(github.ref, 'refs/tags/') || inputs.ngsolve_version != '')
     needs: [test_wheels, build_sdist]
     runs-on: ubuntu-latest
     steps:
